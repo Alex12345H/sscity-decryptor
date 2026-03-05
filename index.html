@@ -1,117 +1,120 @@
 <!DOCTYPE html>
 <html lang="de">
-<link rel="stylesheet" href="styles.css">
 <head>
-<link rel="icon" href="sscityicon.png" type="image/png">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SSC Save Editor</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSC Save Editor</title>
+  <link rel="icon" href="sscityicon.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
-<footer id="footer">
-  <p>
-    Hosted by <a href="https://www.youtube.com/@MOBILEịTUTORIALS"> MOBILE TUTORIALS </a>  - DecKey by Mkx
-    
-  </p>
-</footer>
-  
 <body>
 
-<div class="header">
-  <h1>🏄 SSC Save Editor</h1>
-  <div class="lang-toggle">
-    <button class="lang-btn active" onclick="setLang('de')">DE</button>
-    <button class="lang-btn" onclick="setLang('en')">EN</button>
-  </div>
-</div
-
-<!-- FILE LOAD -->
-<div id="load-section">
-  <input type="file" id="fileInput">
-  <div id="msg-load"></div>
-</div>
-
-<!-- TABS -->
-<div id="main" style="display:none;">
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('wallet',this)" data-de="💰 Währung" data-en="💰 Wallet">💰 Währung</button>
-    <button class="tab" onclick="switchTab('player',this)" data-de="⭐ Spieler" data-en="⭐ Player">⭐ Spieler</button>
-    <button class="tab" onclick="switchTab('surfers',this)" data-de="🧑 Surfer" data-en="🧑 Surfers">🧑 Surfer</button>
-    <button class="tab" onclick="switchTab('boards',this)" data-de="🛹 Boards" data-en="🛹 Boards">🛹 Boards</button>
-    <button class="tab" onclick="switchTab('season',this)" data-de="🎫 Season" data-en="🎫 Season">🎫 Season</button>
-    <button class="tab" onclick="switchTab('save',this)" data-de="💾 Speichern" data-en="💾 Save">💾 Speichern</button>
-  </div>
-
-  <!-- WALLET -->
-  <div id="tab-wallet" class="panel active">
-    <div class="card">
-      <label data-de="Münzen" data-en="Coins">Münzen</label>
-      <input type="number" id="coins" min="0">
-      <label data-de="Schlüssel" data-en="Keys">Schlüssel</label>
-      <input type="number" id="keys" min="0">
-      <label data-de="Wiederbelebungsdosen" data-en="Revive Cans">Wiederbelebungsdosen</label>
-      <input type="number" id="revives" min="0">
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🏄 SSC Save Editor</h1>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('de')">DE</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
     </div>
   </div>
 
-  <!-- PLAYER -->
-  <div id="tab-player" class="panel">
-    <div class="card">
-      <label data-de="Level" data-en="Level">Level</label>
-      <input type="number" id="level" min="1">
-      <label data-de="XP" data-en="XP">XP</label>
-      <input type="number" id="xp" min="0">
-    </div>
+  <!-- FILE LOAD -->
+  <div id="load-section">
+    <input type="file" id="fileInput">
+    <div id="msg-load"></div>
   </div>
 
-  <!-- SURFERS -->
-  <div id="tab-surfers" class="panel">
-    <div class="card">
-      <div class="bulk-row">
-        <input type="number" id="all-slevel" min="1" max="20" data-placeholder-de="Level (max 20)" data-placeholder-en="Level (max 20)" placeholder="Level (max 20)">
-        <button class="btn-blue" onclick="setAllSurferLevels()" data-de="Alle Level" data-en="All Levels">Alle Level</button>
+  <!-- TABS -->
+  <div id="main" style="display:none;">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('wallet',this)" data-de="💰 Währung" data-en="💰 Wallet">💰 Währung</button>
+      <button class="tab" onclick="switchTab('player',this)" data-de="⭐ Spieler" data-en="⭐ Player">⭐ Spieler</button>
+      <button class="tab" onclick="switchTab('surfers',this)" data-de="🧑 Surfer" data-en="🧑 Surfers">🧑 Surfer</button>
+      <button class="tab" onclick="switchTab('boards',this)" data-de="🛹 Boards" data-en="🛹 Boards">🛹 Boards</button>
+      <button class="tab" onclick="switchTab('season',this)" data-de="🎫 Season" data-en="🎫 Season">🎫 Season</button>
+      <button class="tab" onclick="switchTab('save',this)" data-de="💾 Speichern" data-en="💾 Save">💾 Speichern</button>
+    </div>
+
+    <!-- WALLET -->
+    <div id="tab-wallet" class="panel active">
+      <div class="card">
+        <label data-de="Münzen" data-en="Coins">Münzen</label>
+        <input type="number" id="coins" min="0">
+        <label data-de="Schlüssel" data-en="Keys">Schlüssel</label>
+        <input type="number" id="keys" min="0">
+        <label data-de="Wiederbelebungsdosen" data-en="Revive Cans">Wiederbelebungsdosen</label>
+        <input type="number" id="revives" min="0">
       </div>
-      <div class="bulk-row">
-        <input type="number" id="all-hs" min="0" data-placeholder-de="Highscore" data-placeholder-en="High Score" placeholder="Highscore">
-        <button class="btn-blue" onclick="setAllHighscores()" data-de="Alle HS" data-en="All HS">Alle HS</button>
-      </div>
-      <button class="btn-gray" onclick="unlockAllSurfers()" data-de="Alle freischalten" data-en="Unlock all">Alle freischalten</button>
     </div>
-    <div id="surfer-list"></div>
+
+    <!-- PLAYER -->
+    <div id="tab-player" class="panel">
+      <div class="card">
+        <label data-de="Level" data-en="Level">Level</label>
+        <input type="number" id="level" min="1">
+        <label data-de="XP" data-en="XP">XP</label>
+        <input type="number" id="xp" min="0">
+      </div>
+    </div>
+
+    <!-- SURFERS -->
+    <div id="tab-surfers" class="panel">
+      <div class="card">
+        <div class="bulk-row">
+          <input type="number" id="all-slevel" min="1" max="20" data-placeholder-de="Level (max 20)" data-placeholder-en="Level (max 20)" placeholder="Level (max 20)">
+          <button class="btn-blue" onclick="setAllSurferLevels()" data-de="Alle Level" data-en="All Levels">Alle Level</button>
+        </div>
+        <div class="bulk-row">
+          <input type="number" id="all-hs" min="0" data-placeholder-de="Highscore" data-placeholder-en="High Score" placeholder="Highscore">
+          <button class="btn-blue" onclick="setAllHighscores()" data-de="Alle HS" data-en="All HS">Alle HS</button>
+        </div>
+        <button class="btn-gray" onclick="unlockAllSurfers()" data-de="Alle freischalten" data-en="Unlock all">Alle freischalten</button>
+      </div>
+      <div id="surfer-list"></div>
+    </div>
+
+    <!-- BOARDS -->
+    <div id="tab-boards" class="panel">
+      <div class="card">
+        <div class="bulk-row">
+          <input type="number" id="all-blevel" min="1" max="20" data-placeholder-de="Level (max 20)" data-placeholder-en="Level (max 20)" placeholder="Level (max 20)">
+          <button class="btn-blue" onclick="setAllBoardLevels()" data-de="Alle Level" data-en="All Levels">Alle Level</button>
+        </div>
+        <button class="btn-gray" onclick="unlockAllBoards()" data-de="Alle freischalten" data-en="Unlock all">Alle freischalten</button>
+      </div>
+      <div id="board-list"></div>
+    </div>
+
+    <!-- SEASON PASS -->
+    <div id="tab-season" class="panel">
+      <div class="card">
+        <div id="sp-status" class="sp-status sp-off"></div>
+        <button id="sp-btn" class="btn-orange" onclick="toggleSeasonPass()"></button>
+        <div id="sp-points-section" style="display:none; margin-top:10px;">
+          <label data-de="Season Pass Punkte" data-en="Season Pass Points">Season Pass Punkte</label>
+          <input type="number" id="sp-points-val" min="0" placeholder="z.B. 5000">
+          <button class="btn-blue" onclick="applySpPoints()" data-de="Punkte setzen" data-en="Set Points">Punkte setzen</button>
+        </div>
+        <div id="msg-sp"></div>
+      </div>
+    </div>
+
+    <!-- SAVE -->
+    <div id="tab-save" class="panel">
+      <div class="card">
+        <button class="btn-green" onclick="saveFile()" data-de="Verschlüsseln &amp; herunterladen" data-en="Encrypt &amp; download">Verschlüsseln &amp; herunterladen</button>
+        <div id="msg-save"></div>
+      </div>
+    </div>
   </div>
 
-  <!-- BOARDS -->
-  <div id="tab-boards" class="panel">
-    <div class="card">
-      <div class="bulk-row">
-        <input type="number" id="all-blevel" min="1" max="20" data-placeholder-de="Level (max 20)" data-placeholder-en="Level (max 20)" placeholder="Level (max 20)">
-        <button class="btn-blue" onclick="setAllBoardLevels()" data-de="Alle Level" data-en="All Levels">Alle Level</button>
-      </div>
-      <button class="btn-gray" onclick="unlockAllBoards()" data-de="Alle freischalten" data-en="Unlock all">Alle freischalten</button>
-    </div>
-    <div id="board-list"></div>
-  </div>
+  <!-- FOOTER -->
+  <footer id="footer">
+    <p>
+      Hosted by <a href="https://www.youtube.com/@MOBILEịTUTORIALS" target="_blank">MOBILE TUTORIALS</a> - DecKey by Mkx
+    </p>
+  </footer>
 
-  <!-- SEASON PASS -->
-  <div id="tab-season" class="panel">
-    <div class="card">
-      <div id="sp-status" class="sp-status sp-off"></div>
-      <button id="sp-btn" class="btn-orange" onclick="toggleSeasonPass()"></button>
-      <div id="sp-points-section" style="display:none; margin-top:10px;">
-        <label data-de="Season Pass Punkte" data-en="Season Pass Points">Season Pass Punkte</label>
-        <input type="number" id="sp-points-val" min="0" placeholder="z.B. 5000">
-        <button class="btn-blue" onclick="applySpPoints()" data-de="Punkte setzen" data-en="Set Points">Punkte setzen</button>
-      </div>
-      <div id="msg-sp"></div>
-    </div>
-  </div>
-
-  <!-- SAVE -->
-  <div id="tab-save" class="panel">
-    <div class="card">
-      <button class="btn-green" onclick="saveFile()" data-de="Verschlüsseln &amp; herunterladen" data-en="Encrypt &amp; download">Verschlüsseln &amp; herunterladen</button>
-      <div id="msg-save"></div
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
