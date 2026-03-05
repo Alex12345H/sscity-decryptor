@@ -1,0 +1,143 @@
+/* ── GLOBAL ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+  font-family: Arial, sans-serif; 
+  background: #1a1a2e; 
+  color: #eee; 
+  padding: 16px; 
+  max-width: 500px; 
+  margin: 0 auto; 
+}
+
+/* ── HEADER ── */
+.header { 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between; 
+  margin-bottom:16px; 
+}
+h1 { color: #f5a623; font-size: 1.3em; }
+.lang-toggle { display:flex; gap:4px; }
+.lang-btn { 
+  padding:6px 10px; 
+  border-radius:6px; 
+  border:none; 
+  background:#0f3460; 
+  color:#aaa; 
+  font-size:0.8em; 
+  cursor:pointer; 
+}
+.lang-btn.active { 
+  background:#f5a623; 
+  color:#1a1a2e; 
+  font-weight:bold; 
+}
+
+/* ── FILE INPUT ── */
+#fileInput { 
+  display:block; 
+  width:100%; 
+  padding:14px; 
+  background:#0f3460; 
+  color:#f5a623; 
+  border:2px dashed #f5a623; 
+  border-radius:10px; 
+  font-size:1em; 
+  margin-bottom:8px; 
+  cursor:pointer; 
+}
+.msg { 
+  text-align:center; 
+  padding:8px; 
+  border-radius:8px; 
+  margin:6px 0; 
+  font-size:0.85em; 
+}
+.msg.ok  { background:#1e5c35; color:#2ecc71; }
+.msg.err { background:#5c1e1e; color:#e74c3c; }
+.msg.info{ background:#1e3a5c; color:#3498db; }
+
+/* ── TABS ── */
+.tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.tab { 
+  flex:1; 
+  min-width:60px; 
+  padding:10px 4px; 
+  border-radius:8px; 
+  border:none; 
+  background:#0f3460; 
+  color:#aaa; 
+  font-size:0.82em; 
+  cursor:pointer; 
+  text-align:center; 
+}
+.tab.active { 
+  background:#f5a623; 
+  color:#1a1a2e; 
+  font-weight:bold; 
+}
+
+/* ── PANELS ── */
+.panel { display:none; }
+.panel.active { display:block; }
+.card { 
+  background:#16213e; 
+  border-radius:10px; 
+  padding:14px; 
+  margin-bottom:12px; 
+}
+
+/* ── FORM ELEMENTS ── */
+label { display:block; font-size:0.82em; color:#aaa; margin-bottom:3px; }
+input[type=number] { 
+  width:100%; 
+  padding:10px; 
+  border-radius:8px; 
+  border:1px solid #333; 
+  background:#0f3460; 
+  color:#fff; 
+  font-size:1em; 
+  margin-bottom:10px; 
+}
+button { 
+  width:100%; 
+  padding:12px; 
+  border-radius:8px; 
+  border:none; 
+  font-size:0.95em; 
+  font-weight:bold; 
+  cursor:pointer; 
+  margin-bottom:6px; 
+}
+.btn-orange { background:#f5a623; color:#1a1a2e; }
+.btn-green  { background:#27ae60; color:#fff; }
+.btn-blue   { background:#2980b9; color:#fff; }
+.btn-red    { background:#c0392b; color:#fff; }
+.btn-gray   { background:#444; color:#eee; }
+
+/* ── SURFER / BOARD ITEMS ── */
+.s-item { background:#0f3460; border-radius:8px; padding:10px; margin-bottom:8px; }
+.s-name { color:#f5a623; font-size:0.9em; font-weight:bold; margin-bottom:6px; }
+.s-row  { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+.s-row input[type=checkbox] { width:18px; height:18px; flex-shrink:0; }
+.s-row label { margin:0; color:#ccc; font-size:0.85em; flex:1; }
+.s-fields { display:flex; gap:8px; }
+.s-fields > div { flex:1; }
+.s-fields label { font-size:0.75em; }
+.s-fields input { margin-bottom:0; padding:8px; }
+
+/* ── BULK ROW ── */
+.bulk-row { display:flex; gap:8px; margin-bottom:10px; }
+.bulk-row input { margin:0; flex:1; }
+.bulk-row button { width:auto; padding:10px 14px; flex-shrink:0; margin:0; }
+
+/* ── SEASON PASS ── */
+.sp-status { 
+  text-align:center; 
+  font-size:1.1em; 
+  padding:10px; 
+  border-radius:8px; 
+  margin-bottom:10px; 
+}
+.sp-on  { background:#1e5c35; color:#2ecc71; }
+.sp-off { background:#333; color:#aaa; }
