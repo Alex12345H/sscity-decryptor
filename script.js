@@ -300,11 +300,6 @@ const rawContainer = document.createElement('div');
 rawContainer.id = 'raw-editor-container';
 document.getElementById('tab-save').appendChild(rawContainer);
 
-// Textarea
-const rawArea = document.createElement('textarea');
-rawArea.id = 'raw-editor';
-rawContainer.appendChild(rawArea);
-
 // Buttons
 const rawButtons = document.createElement('div');
 rawButtons.id = 'raw-editor-buttons';
@@ -329,24 +324,30 @@ exportBtn.onclick = () => {
 
 rawButtons.appendChild(copyBtn);
 rawButtons.appendChild(exportBtn);
-rawContainer.insertBefore(rawButtons, rawArea);
+rawContainer.appendChild(rawButtons);
+
+// Textarea
+const rawArea = document.createElement('textarea');
+rawArea.id = 'raw-editor';
+rawContainer.appendChild(rawArea);
 
 // ── Populate RAW ───────────────────────────────────────────
 function updateRawEditor() {
   if(inner) rawArea.value = JSON.stringify(inner, null, 2);
 }
 
-// ── Listen for changes in RAW ─────────────────────────────
+// Listen for changes in RAW editor
 rawArea.addEventListener('input', () => {
   try {
-    inner = JSON.parse(rawArea.value); // live update inner object
-    populate(); // refresh UI
+    const parsed = JSON.parse(rawArea.value);
+    inner = parsed;      // Update inner object
+    populate();          // Refresh UI fields
   } catch(e) {
-    // optional: show parse errors somewhere
+    // Ignore parse errors while typing
   }
 });
 
-// Call after file load
+// Call this after file load or populate
 function initRawEditor() {
   updateRawEditor();
 }
