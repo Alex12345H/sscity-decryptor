@@ -295,27 +295,58 @@ function copyToClipboard() {
     .catch(e=>showMsg('msg-save', t('error')+e.message,'err'));
 }
 
-// ── Raw editor ──────────────────────────────────────────
-function openRawEditor() {
-  if (!inner) return;
-  document.getElementById('raw-editor').value = JSON.stringify(inner, null, 2);
+// ── RAW EDITOR ─────────────────────────────────────────────
+const rawContainer = document.createElement('div');
+rawContainer.id = 'raw-editor-container';
+document.getElementById('tab-save').appendChild(rawContainer);
+
+// Textarea
+const rawArea = document.createElement('textarea');
+rawArea.id = 'raw-editor';
+rawContainer.appendChild(rawArea);
+
+// Buttons
+const rawButtons = document.createElement('div');
+rawButtons.id = 'raw-editor-buttons';
+
+const copyBtn = document.createElement('button');
+copyBtn.textContent = 'Copy';
+copyBtn.className = 'btn-blue';
+copyBtn.onclick = () => navigator.clipboard.writeText(rawArea.value);
+
+const exportBtn = document.createElement('button');
+exportBtn.textContent = 'Export Decrypted';
+exportBtn.className = 'btn-green';
+exportBtn.onclick = () => {
+  const blob = new Blob([rawArea.value], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'profile_decrypted.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+rawButtons.appendChild(copyBtn);
+rawButtons.appendChild(exportBtn);
+rawContainer.insertBefore(rawButtons, rawArea);
+
+// ── Populate RAW ───────────────────────────────────────────
+function updateRawEditor() {
+  if(inner) rawArea.value = JSON.stringify(inner, null, 2);
 }
 
-function applyRawEdit() {
-  const txt = document.getElementById('raw-editor').value;
+// ── Listen for changes in RAW ─────────────────────────────
+rawArea.addEventListener('input', () => {
   try {
-    const parsed = JSON.parse(txt);
-    inner = parsed;
-    populate();
-    showMsg('msg-raw','Raw JSON applied','ok');
+    inner = JSON.parse(rawArea.value); // live update inner object
+    populate(); // refresh UI
   } catch(e) {
-    showMsg('msg-raw','Invalid JSON: '+e.message,'err');
+    // optional: show parse errors somewhere
   }
-}
-
-// Automatisch Raw Editor öffnen beim Tab Save
-document.querySelectorAll('.tab').forEach(t=>{
-  t.addEventListener('click', ()=>{
-    if(t.dataset.de === "Speichern" || t.dataset.en === "Save") openRawEditor();
-  });
 });
+
+// Call after file load
+function initRawEditor() {
+  updateRawEditor();
+}
