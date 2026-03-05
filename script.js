@@ -276,3 +276,46 @@ function showMsg(id, text, type) {
   el.className = 'msg ' + type;
   el.textContent = text;
 }
+// ── Export decrypted ─────────────────────────────────────
+function exportDecrypted() {
+  if (!inner) return showMsg('msg-save', t('error') + 'No file loaded', 'err');
+  const blob = new Blob([JSON.stringify(inner, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'profile_decrypted.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showMsg('msg-save', 'Decrypted export ready', 'ok');
+}
+
+// ── Copy to clipboard ───────────────────────────────────
+function copyToClipboard() {
+  if (!inner) return showMsg('msg-save', t('error') + 'No file loaded', 'err');
+  navigator.clipboard.writeText(JSON.stringify(inner, null, 2))
+    .then(()=>showMsg('msg-save','Copied to clipboard','ok'))
+    .catch(e=>showMsg('msg-save', t('error')+e.message,'err'));
+}
+
+// ── Raw editor ──────────────────────────────────────────
+function openRawEditor() {
+  if (!inner) return;
+  document.getElementById('raw-editor').value = JSON.stringify(inner, null, 2);
+}
+
+function applyRawEdit() {
+  const txt = document.getElementById('raw-editor').value;
+  try {
+    const parsed = JSON.parse(txt);
+    inner = parsed;
+    populate();
+    showMsg('msg-raw','Raw JSON applied','ok');
+  } catch(e) {
+    showMsg('msg-raw','Invalid JSON: '+e.message,'err');
+  }
+}
+
+// Automatisch Raw Editor öffnen beim Tab Save
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    if(t.dataset.de === "Speichern" || t.dataset.en === "Save") openRawEditor();
+  });
+});
