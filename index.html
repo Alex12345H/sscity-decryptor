@@ -103,6 +103,17 @@
     <div class="card">
       <button class="btn-green" onclick="saveFile()" data-de="Verschlüsseln &amp; herunterladen" data-en="Encrypt &amp; download">Verschlüsseln &amp; herunterladen</button>
       <div id="msg-save"></div>
+      <!-- Export decrypted JSON & Copy -->
+<button class="btn-blue" onclick="exportDecrypted()" data-de="Decrypted exportieren" data-en="Export decrypted">Decrypted exportieren</button>
+<button class="btn-gray" onclick="copyToClipboard()" data-de="In Zwischenablage kopieren" data-en="Copy to clipboard">In Zwischenablage kopieren</button>
+
+<!-- Raw edit section -->
+<div class="card" style="margin-top:12px;">
+  <label data-de="Roh-Editor" data-en="Raw editor">Roh-Editor</label>
+  <textarea id="raw-editor" style="width:100%; height:200px; background:#0f3460; color:#fff; border-radius:8px; padding:8px; font-family:monospace;"></textarea>
+  <button class="btn-green" onclick="applyRawEdit()" data-de="Übernehmen" data-en="Apply">Übernehmen</button>
+  <div id="msg-raw"></div>
+</div>
     </div>
   </div>
 </div>
