@@ -2,6 +2,9 @@
 const COINS_TAG  = -633437229;
 const KEYS_TAG   = -1085419483;
 const REVIVE_TAG = 1669706535;
+const BOARDTOKENS_TAG = 123456789;
+const CHARTOKENS_TAG  = 987654321;
+const TICKETS_TAG = 112233445;
 
 const BOARD_NAMES = {
   "857306595":   "Home Runner",    "821107692":   "Trasher",
@@ -96,7 +99,8 @@ function setLang(l) {
   document.querySelectorAll('[data-placeholder-' + l + ']').forEach(el => {
     el.placeholder = el.getAttribute('data-placeholder-' + l);
   });
-  document.getElementById('fileInput').placeholder = t('filePrompt');
+  // fileInput doesn't support placeholder reliably; keep for compatibility
+  try { document.getElementById('fileInput').placeholder = t('filePrompt'); } catch(e){}
   if (fileLoaded) showMsg('msg-load', t('loaded'), 'ok');
   updateSpUI();
   if (inner) repopulateSurferLabels();
@@ -111,6 +115,15 @@ function repopulateSurferLabels() {
 // ── State ──────────────────────────────────────────────────
 let ctrBytes, keyBytes, outer, inner, fileLoaded = false;
 
+// ── Helpers ─────────────────────────────────────────────────
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'msg ' + type;
+  el.textContent = text;
+}
+function getW(tag) { return (inner && inner.wallet ? inner.wallet : []).find(w => w.dataTag === tag); }
+
 // ── File load ─────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', function() {
   const file = this.files[0];
@@ -119,17 +132,23 @@ document.getElementById('fileInput').addEventListener('change', function() {
   reader.onload = async e => {
     try {
       const raw = new Uint8Array(e.target.result);
+      if (raw.length < 32) throw new Error('File too small or invalid format');
       ctrBytes = raw.slice(0, 16);
       keyBytes = raw.slice(16, 32);
       const enc = raw.slice(32);
       const ck = await crypto.subtle.importKey('raw', keyBytes, {name:'AES-CTR'}, false, ['decrypt']);
       const plain = await crypto.subtle.decrypt({name:'AES-CTR', counter:ctrBytes, length:64}, ck, enc);
       outer = JSON.parse(new TextDecoder().decode(plain));
-      inner = JSON.parse(outer.profile);
+      // outer.profile may be already a stringified JSON
+      inner = typeof outer.profile === 'string' ? JSON.parse(outer.profile) : outer.profile;
       populate();
       document.getElementById('main').style.display = 'block';
-      fileLoaded = true; showMsg('msg-load', t('loaded'), 'ok');
-    } catch(e) { showMsg('msg-load', t('error') + e.message, 'err'); }
+      fileLoaded = true;
+      showMsg('msg-load', t('loaded'), 'ok');
+    } catch(e) {
+      console.error('File load error:', e);
+      showMsg('msg-load', t('error') + (e.message || e), 'err');
+    }
   };
   reader.readAsArrayBuffer(file);
 });
@@ -138,40 +157,55 @@ document.getElementById('fileInput').addEventListener('change', function() {
 function switchTab(name, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
+  const panel = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
   if (btn) btn.classList.add('active');
 }
 
 // ── Populate ───────────────────────────────────────────────
-function getW(tag) { return (inner.wallet||[]).find(w => w.dataTag === tag); }
-
 function populate() {
+  if (!inner) return;
+  if (!inner.wallet) inner.wallet = [];
+
   const coins = getW(COINS_TAG), keys = getW(KEYS_TAG), revives = getW(REVIVE_TAG);
-  document.getElementById('coins').value   = coins   ? coins.count   : 0;
-  document.getElementById('keys').value    = keys    ? keys.count    : 0;
-  document.getElementById('revives').value = revives ? revives.count : 0;
-  document.getElementById('level').value   = inner.level || 0;
-  document.getElementById('xp').value      = inner.xp    || 0;
+  const boardTokens = getW(BOARDTOKENS_TAG), charTokens = getW(CHARTOKENS_TAG), tickets = getW(TICKETS_TAG);
 
-  // Surfers
+  const setInputSafe = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  };
+
+  setInputSafe('coins', coins ? coins.count : 0);
+  setInputSafe('keys', keys ? keys.count : 0);
+  setInputSafe('revives', revives ? revives.count : 0);
+  setInputSafe('boardtokens', boardTokens ? boardTokens.count : 0);
+  setInputSafe('chartokens', charTokens ? charTokens.count : 0);
+  setInputSafe('tickets', tickets ? tickets.count : 0);
+
+  setInputSafe('level', inner.level || 0);
+  setInputSafe('xp', inner.xp || 0);
+
+  // Surfers list
   const sl = document.getElementById('surfer-list');
-  sl.innerHTML = '';
-  (inner.surferProfiles||[]).forEach((s,i) => {
-    const name = SURFER_NAMES[String(s.id)] || 'Unknown';
-    sl.innerHTML += `<div class="s-item">
-      <div class="s-name">${name}</div>
-      <div class="s-row">
-        <input type="checkbox" id="su${i}" ${s.isUnlocked?'checked':''}>
-        <label class="s-unlock-label" for="su${i}">${t('unlocked')}</label>
-      </div>
-      <div class="s-fields">
-        <div><label class="s-level-label">${t('level')}</label><input type="number" id="sl${i}" value="${s.level||1}" min="1" max="20"></div>
-        <div><label class="s-hs-label">${t('highscore')}</label><input type="number" id="hs${i}" value="${s.highScore||0}" min="0"></div>
-      </div>
-    </div>`;
-  });
+  if (sl) {
+    sl.innerHTML = '';
+    (inner.surferProfiles || []).forEach((s, i) => {
+      const name = SURFER_NAMES[String(s.id)] || 'Unknown';
+      sl.innerHTML += `<div class="s-item">
+        <div class="s-name">${name}</div>
+        <div class="s-row">
+          <input type="checkbox" id="su${i}" ${s.isUnlocked ? 'checked' : ''}>
+          <label class="s-unlock-label" for="su${i}">${t('unlocked')}</label>
+        </div>
+        <div class="s-fields">
+          <div><label class="s-level-label">${t('level')}</label><input type="number" id="sl${i}" value="${s.level||1}" min="1" max="20"></div>
+          <div><label class="s-hs-label">${t('highscore')}</label><input type="number" id="hs${i}" value="${s.highScore||0}" min="0"></div>
+        </div>
+      </div>`;
+    });
+  }
 
-  // Boards
+  // Boards list - ensure known boards exist
   const FILTERED = ALL_BOARD_IDS.filter(id => id !== -1398156391);
   FILTERED.forEach(id => {
     if (!(inner.boardProfiles||[]).find(b => b.id === id)) {
@@ -179,34 +213,36 @@ function populate() {
       inner.boardProfiles.push({ id, level:1, isUnlocked:false, wasSeen:false });
     }
   });
-  inner.boardProfiles = inner.boardProfiles.filter(b => b.id !== -1398156391);
+  inner.boardProfiles = (inner.boardProfiles || []).filter(b => b.id !== -1398156391);
   inner.boardProfiles.sort((a,b) => FILTERED.indexOf(a.id) - FILTERED.indexOf(b.id));
 
   const bl = document.getElementById('board-list');
-  bl.innerHTML = '';
-  (inner.boardProfiles||[]).forEach((b,i) => {
-    const name = BOARD_NAMES[String(b.id)] || 'Board #'+i;
-    bl.innerHTML += `<div class="s-item">
-      <div class="s-name">${name}</div>
-      <div class="s-row">
-        <input type="checkbox" id="bu${i}" ${b.isUnlocked?'checked':''}>
-        <label class="s-unlock-label" for="bu${i}">${t('unlocked')}</label>
-      </div>
-      <div class="s-fields">
-        <div><label class="s-level-label">${t('level')}</label><input type="number" id="bl${i}" value="${b.level||1}" min="1" max="20"></div>
-      </div>
-    </div>`;
-  });
+  if (bl) {
+    bl.innerHTML = '';
+    (inner.boardProfiles || []).forEach((b,i) => {
+      const name = BOARD_NAMES[String(b.id)] || 'Board #'+i;
+      bl.innerHTML += `<div class="s-item">
+        <div class="s-name">${name}</div>
+        <div class="s-row">
+          <input type="checkbox" id="bu${i}" ${b.isUnlocked ? 'checked' : ''}>
+          <label class="s-unlock-label" for="bu${i}">${t('unlocked')}</label>
+        </div>
+        <div class="s-fields">
+          <div><label class="s-level-label">${t('level')}</label><input type="number" id="bl${i}" value="${b.level||1}" min="1" max="20"></div>
+        </div>
+      </div>`;
+    });
+  }
 
   updateSpUI();
 }
 
 // ── Bulk actions ───────────────────────────────────────────
-function unlockAllSurfers() { (inner.surferProfiles||[]).forEach((_,i) => { document.getElementById('su'+i).checked=true; }); showMsg('msg-save', t('allUnlocked'), 'info'); }
-function unlockAllBoards()  { (inner.boardProfiles||[]).forEach((_,i)  => { document.getElementById('bu'+i).checked=true; }); showMsg('msg-save', t('allUnlocked'), 'info'); }
-function setAllSurferLevels() { const v=Math.min(parseInt(document.getElementById('all-slevel').value)||1,20); (inner.surferProfiles||[]).forEach((_,i)=>{ document.getElementById('sl'+i).value=v; }); }
-function setAllBoardLevels()  { const v=Math.min(parseInt(document.getElementById('all-blevel').value)||1,20); (inner.boardProfiles||[]).forEach((_,i) =>{ document.getElementById('bl'+i).value=v; }); }
-function setAllHighscores()   { const v=parseInt(document.getElementById('all-hs').value)||0; (inner.surferProfiles||[]).forEach((_,i)=>{ document.getElementById('hs'+i).value=v; }); }
+function unlockAllSurfers() { (inner.surferProfiles||[]).forEach((_,i) => { const el = document.getElementById('su'+i); if(el) el.checked=true; }); showMsg('msg-save', t('allUnlocked'), 'info'); }
+function unlockAllBoards()  { (inner.boardProfiles||[]).forEach((_,i)  => { const el = document.getElementById('bu'+i); if(el) el.checked=true; }); showMsg('msg-save', t('allUnlocked'), 'info'); }
+function setAllSurferLevels() { const v = Math.min(parseInt(document.getElementById('all-slevel').value)||1, 20); (inner.surferProfiles||[]).forEach((_,i)=>{ const el = document.getElementById('sl'+i); if(el) el.value = v; }); }
+function setAllBoardLevels()  { const v = Math.min(parseInt(document.getElementById('all-blevel').value)||1, 20); (inner.boardProfiles||[]).forEach((_,i) =>{ const el = document.getElementById('bl'+i); if(el) el.value = v; }); }
+function setAllHighscores()   { const v = parseInt(document.getElementById('all-hs').value)||0; (inner.surferProfiles||[]).forEach((_,i)=>{ const el = document.getElementById('hs'+i); if(el) el.value = v; }); }
 
 // ── Season Pass ────────────────────────────────────────────
 function updateSpUI() {
@@ -214,19 +250,22 @@ function updateSpUI() {
   const active = inner.seasonPassPurchased;
   const statusEl = document.getElementById('sp-status');
   const btnEl    = document.getElementById('sp-btn');
-  statusEl.textContent = active ? t('spActive') : t('spInactive');
-  statusEl.className   = 'sp-status ' + (active ? 'sp-on' : 'sp-off');
-  btnEl.textContent    = active ? t('spLock') : t('spUnlock');
-  btnEl.className      = active ? 'btn-red' : 'btn-orange';
-  document.getElementById('sp-points-section').style.display = active ? 'block' : 'none';
-  if (active) document.getElementById('sp-points-val').value = inner.seasonPassPoints || 0;
+  if (statusEl) statusEl.textContent = active ? t('spActive') : t('spInactive');
+  if (statusEl) statusEl.className   = 'sp-status ' + (active ? 'sp-on' : 'sp-off');
+  if (btnEl) btnEl.textContent    = active ? t('spLock') : t('spUnlock');
+  if (btnEl) btnEl.className      = active ? 'btn-red' : 'btn-orange';
+  const spPointsSection = document.getElementById('sp-points-section');
+  if (spPointsSection) spPointsSection.style.display = active ? 'block' : 'none';
+  if (active && document.getElementById('sp-points-val')) document.getElementById('sp-points-val').value = inner.seasonPassPoints || 0;
 }
 function toggleSeasonPass() {
+  if (!inner) return;
   inner.seasonPassPurchased = !inner.seasonPassPurchased;
   updateSpUI();
   showMsg('msg-sp', inner.seasonPassPurchased ? t('spActivated') : t('spDeactivated'), inner.seasonPassPurchased ? 'ok' : 'info');
 }
 function applySpPoints() {
+  if (!inner) return;
   inner.seasonPassPoints = parseInt(document.getElementById('sp-points-val').value)||0;
   showMsg('msg-sp', t('spPoints') + inner.seasonPassPoints, 'ok');
 }
@@ -234,27 +273,48 @@ function applySpPoints() {
 // ── Save ───────────────────────────────────────────────────
 async function saveFile() {
   try {
-    const setW = (tag, val) => { 
-      let i=getW(tag); 
-      if(i) i.count=val; 
-      else inner.wallet.push({dataTag:tag,count:val}); 
+    if (!inner) return showMsg('msg-save', t('error') + ' no profile loaded', 'err');
+
+    if (!inner.wallet) inner.wallet = [];
+
+    const setW = (tag, val) => {
+      let i = getW(tag);
+      if (i) i.count = val;
+      else {
+        // ensure wallet exists
+        if (!inner.wallet) inner.wallet = [];
+        inner.wallet.push({ dataTag: tag, count: val });
+      }
     };
-    setW(COINS_TAG,  parseInt(document.getElementById('coins').value)  ||0);
-    setW(KEYS_TAG,   parseInt(document.getElementById('keys').value)   ||0);
-    setW(REVIVE_TAG, parseInt(document.getElementById('revives').value)||0);
-    inner.level = parseInt(document.getElementById('level').value)||0;
-    inner.xp    = parseInt(document.getElementById('xp').value)   ||0;
+
+    setW(COINS_TAG,  parseInt(document.getElementById('coins').value)  || 0);
+    setW(KEYS_TAG,   parseInt(document.getElementById('keys').value)   || 0);
+    setW(BOARDTOKENS_TAG, parseInt(document.getElementById('boardtokens').value) || 0);
+    setW(CHARTOKENS_TAG,  parseInt(document.getElementById('chartokens').value)  || 0);
+    setW(TICKETS_TAG,     parseInt(document.getElementById('tickets').value)     || 0);
+    setW(REVIVE_TAG, parseInt(document.getElementById('revives').value) || 0);
+
+    inner.level = parseInt(document.getElementById('level').value) || 0;
+    inner.xp    = parseInt(document.getElementById('xp').value) || 0;
+
     (inner.surferProfiles||[]).forEach((s,i) => {
-      s.isUnlocked = document.getElementById('su'+i).checked;
+      const elSu = document.getElementById('su'+i);
+      const elSl = document.getElementById('sl'+i);
+      const elHs = document.getElementById('hs'+i);
+      s.isUnlocked = elSu ? elSu.checked : !!s.isUnlocked;
       s.wasSeen    = s.isUnlocked;
-      s.level      = Math.min(parseInt(document.getElementById('sl'+i).value)||1, 20);
-      s.highScore  = parseInt(document.getElementById('hs'+i).value)||0;
+      s.level      = elSl ? Math.min(parseInt(elSl.value)||1, 20) : (s.level || 1);
+      s.highScore  = elHs ? parseInt(elHs.value)||0 : (s.highScore || 0);
     });
+
     (inner.boardProfiles||[]).forEach((b,i) => {
-      b.isUnlocked = document.getElementById('bu'+i).checked;
+      const elBu = document.getElementById('bu'+i);
+      const elBl = document.getElementById('bl'+i);
+      b.isUnlocked = elBu ? elBu.checked : !!b.isUnlocked;
       b.wasSeen    = b.isUnlocked;
-      b.level      = Math.min(parseInt(document.getElementById('bl'+i).value)||1, 20);
+      b.level      = elBl ? Math.min(parseInt(elBl.value)||1, 20) : (b.level || 1);
     });
+
     outer.profile = JSON.stringify(inner);
     const plain = new TextEncoder().encode(JSON.stringify(outer));
     const ck = await crypto.subtle.importKey('raw', keyBytes, {name:'AES-CTR'}, false, ['encrypt']);
@@ -266,33 +326,37 @@ async function saveFile() {
     a.download = 'profile';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     showMsg('msg-save', t('saved'), 'ok');
-  } catch(e) { showMsg('msg-save', t('error') + e.message, 'err'); }
+  } catch(e) {
+    console.error('saveFile error:', e);
+    showMsg('msg-save', t('error') + (e.message || e), 'err');
+  }
 }
 
-// ── Helpers ────────────────────────────────────────────────
-function showMsg(id, text, type) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = 'msg ' + type;
-  el.textContent = text;
-}
 // ── Export decrypted ─────────────────────────────────────
 function exportDecrypted() {
-  if (!inner) return showMsg('msg-save', t('error') + 'No file loaded', 'err');
-  const blob = new Blob([JSON.stringify(inner, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'profile_decrypted.json';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  showMsg('msg-save', 'Decrypted export ready', 'ok');
+  try {
+    if (!inner) return showMsg('msg-save', t('error') + ' no file loaded', 'err');
+    const blob = new Blob([JSON.stringify(inner, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'profile_decrypted.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showMsg('msg-save', 'Decrypted export ready', 'ok');
+  } catch (e) {
+    console.error('exportDecrypted error:', e);
+    showMsg('msg-save', t('error') + (e.message || e), 'err');
+  }
 }
 
 // ── Copy to clipboard ───────────────────────────────────
 function copyToClipboard() {
-  if (!inner) return showMsg('msg-save', t('error') + 'No file loaded', 'err');
-  navigator.clipboard.writeText(JSON.stringify(inner, null, 2))
-    .then(()=>showMsg('msg-save','Copied to clipboard','ok'))
-    .catch(e=>showMsg('msg-save', t('error')+e.message,'err'));
+  if (!inner) return showMsg('msg-save', t('error') + ' no file loaded', 'err');
+  try {
+    navigator.clipboard.writeText(JSON.stringify(inner, null, 2))
+      .then(()=>showMsg('msg-save','Copied to clipboard','ok'))
+      .catch(e=>{ console.error('clipboard write error:', e); showMsg('msg-save', t('error')+ (e.message || e), 'err'); });
+  } catch(e) {
+    console.error('copyToClipboard error:', e);
+    showMsg('msg-save', t('error') + (e.message || e), 'err');
+  }
 }
-
-
